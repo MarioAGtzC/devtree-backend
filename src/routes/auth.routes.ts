@@ -5,7 +5,7 @@ import { body } from 'express-validator';
 import User from '../models/user.model';
 import filterBody from '../middlewares/filterBody';
 import validateFields from '../middlewares/validateFields';
-import { createAccount } from '../controllers/auth.controller';
+import { createAccount, login } from '../controllers/auth.controller';
 import { emailExists, userNameExists } from '../validators/user.validators';
 
 const router = Router();
@@ -20,7 +20,7 @@ router.post('/register', [
     .exists({ values: 'falsy' }).withMessage('Name is required')
     .isString().withMessage('Name must be a string'),
   body('email')
-    .isEmail()
+    .isEmail().withMessage('Not a valid email')
     .custom(emailExists),
   body('password')
     .isStrongPassword({
@@ -29,9 +29,19 @@ router.post('/register', [
       minUppercase: 1,
       minNumbers: 1,
       minSymbols: 1,
-    }).withMessage('Password must be at least 8 characters long and include at least one lowercase letter, one uppercase letter, one number, and one special character.'),
+    }).withMessage('Password must be at least 8 characters long and include at least one lowercase letter, one uppercase letter, one number, and one special character'),
   filterBody(User.schema),
   validateFields
 ], createAccount);
+
+router.post('/login', [
+  body('email')
+    .isEmail().withMessage('Not a valid email'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required'),
+  filterBody(User.schema),
+  validateFields
+], login);
 
 export default router;
