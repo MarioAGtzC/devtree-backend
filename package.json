@@ -21,6 +21,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "colors": "^1.4.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
@@ -28,6 +29,7 @@
     "slug": "^8.2.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",
     "@types/slug": "^5.0.9",
     "nodemon": "^3.1.10",

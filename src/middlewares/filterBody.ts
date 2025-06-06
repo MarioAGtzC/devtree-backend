@@ -4,6 +4,8 @@ import { Request, Response, NextFunction } from 'express';
 const filterBody = (model: Schema) => (req: Request, res: Response, next: NextFunction) => {
   const allowedFields = Object.keys(model.obj);
   
+  if(!req.body) return next();
+
   req.body = Object.fromEntries(
     Object.entries(req.body).filter(([key]) => allowedFields.includes(key))
   );

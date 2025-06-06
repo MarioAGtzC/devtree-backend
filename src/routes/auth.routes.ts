@@ -12,12 +12,12 @@ const router = Router();
 
 router.post('/register', [
   body('username')
-    .exists({ values: 'falsy' }).withMessage('Username is required')
-    .isString().withMessage('Username must be a string')
+    .exists({ values: 'falsy' }).withMessage('Username is required').bail()
+    .isString().withMessage('Username must be a string').bail()
     .customSanitizer(value => slug(value, ''))
     .custom(userNameExists),
   body('name')
-    .exists({ values: 'falsy' }).withMessage('Name is required')
+    .exists({ values: 'falsy' }).withMessage('Name is required').bail()
     .isString().withMessage('Name must be a string'),
   body('email')
     .isEmail().withMessage('Not a valid email')
