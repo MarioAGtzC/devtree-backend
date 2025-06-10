@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import User from '../models/user.model';
+import { generateJWT } from '../utils/jwt';
 import { comparePassword, hashPassword } from '../utils/auth';
 
 export const createAccount = async (req: Request, res: Response) => {
@@ -20,13 +21,15 @@ export const login = async(req: Request, res: Response): Promise<any> => {
   
   const user = await User.findOne({email});
   if(!user) {
-    return res.status(404).json({eror: 'Email doesn\'t exist'});
+    return res.status(404).json({error: 'Email doesn\'t exist'});
   }
 
   const isCorrectPassword = await comparePassword(password, user.password);
   if(!isCorrectPassword) {
-    return res.status(401).json({eror: 'Invalid password'});
+    return res.status(401).json({error: 'Invalid password'});
   }
+
+  const token = generateJWT({id: user._id});
   
-  res.send('Auth');
+  res.send(token);
 }
