@@ -7,9 +7,9 @@ export const emailExists = async(email = '') => {
   }
 }
 
-export const userNameExists = async(username = '') => {
-  const user = await User.findOne({username});
-  if(user) {
+export const userNameExists = async(username = '', { req }) => {
+  const user = await User.findOne({username});  
+  if(user && user?.email !== req?.user?.email) {
     throw new Error(`The username ${username} is already in use`);
   }
 }

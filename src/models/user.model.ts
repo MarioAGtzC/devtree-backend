@@ -1,10 +1,11 @@
-import { model, Schema, SchemaTypeOptions } from 'mongoose';
+import { Document, model, Schema, SchemaTypeOptions } from 'mongoose';
 
-export interface IUser {
+export interface IUser extends Document{
   username: string
   name: string
   email: string
   password: string
+  description: string
 }
 
 const UserSchema = new Schema<IUser, SchemaTypeOptions<string>>({
@@ -31,6 +32,10 @@ const UserSchema = new Schema<IUser, SchemaTypeOptions<string>>({
     required: true,
     trim: true
   },
+  description: {
+    type: String,
+    default: '',
+  }
 }, {
   timestamps: true,
 });
