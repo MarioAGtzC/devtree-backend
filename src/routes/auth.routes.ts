@@ -2,8 +2,8 @@ import slug from 'slug';
 import { Router } from 'express';
 import { body } from 'express-validator';
 
-import User from '../models/user.model';
 import filterBody from '../middlewares/filterBody';
+import { loginUser, registerUser } from '../types/user';
 import validateFields from '../middlewares/validateFields';
 import { createAccount, login } from '../controllers/auth.controller';
 import { emailExists, userNameExists } from '../validators/user.validators';
@@ -30,7 +30,7 @@ router.post('/register', [
       minNumbers: 1,
       minSymbols: 1,
     }).withMessage('Password must be at least 8 characters long and include at least one lowercase letter, one uppercase letter, one number, and one special character'),
-  filterBody(User.schema),
+  filterBody(registerUser),
   validateFields
 ], createAccount);
 
@@ -40,7 +40,7 @@ router.post('/login', [
   body('password')
     .notEmpty()
     .withMessage('Password is required'),
-  filterBody(User.schema),
+  filterBody(loginUser),
   validateFields
 ], login);
 
