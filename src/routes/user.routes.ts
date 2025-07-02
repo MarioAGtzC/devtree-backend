@@ -7,7 +7,7 @@ import filterBody from '../middlewares/filterBody';
 import validateFields from '../middlewares/validateFields';
 import { authenticate } from '../middlewares/authenticate';
 import { userNameExists } from '../validators/user.validators';
-import { getUser, updateUser } from '../controllers/user.controller';
+import { getUser, updateUser, uploadImage } from '../controllers/user.controller';
 
 const router = Router();
 
@@ -28,5 +28,7 @@ router.patch('/', [
   filterBody(editUser),
   validateFields
 ], updateUser);
+
+router.post('/image', authenticate, uploadImage);
 
 export default router;
