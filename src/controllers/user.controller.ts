@@ -30,6 +30,10 @@ export const uploadImage = async (req: Request, res: Response): Promise<any> => 
           return res.status(500).json({error: error.message});
         }
         if(result) {
+          if(req.user.image) {
+            const publicId = req.user.image.split('/').at(-1)?.split('.')[0];
+            if (publicId) await cloudinary.uploader.destroy(publicId);
+          }
           req.user.image = result.secure_url;
           await req.user.save();
           res.json({ image: result.secure_url });
