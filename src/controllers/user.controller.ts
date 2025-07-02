@@ -18,21 +18,24 @@ export const updateUser = async (req: Request, res: Response): Promise<any> => {
   }
 }
 
-export const uploadImage = async (req: Request, res: Response): Promise<any> => {
+export const uploadImage = async (req: Request, res: Response): Promise<any> => {  
   const form = formidable({ multiples: false });
   try {
     form.parse(req, async (error, fields, files) => {
+      if(Object.keys(files).length === 0) {
+        return res.status(500).json({error: 'There is no file to upload'});
+      }
       cloudinary.uploader.upload(files.file[0].filepath, { public_id: uuid() }, async function(error, result) {
         if(error) {
           return res.status(500).json({error: error.message});
         }
         if(result) {
-          console.log(result.secure_url);
+          req.user.image = result.secure_url;
+          await req.user.save();
+          res.json({ image: result.secure_url });
         }
       })
     });
-
-    res.status(200).json('Image uploaded successfully');
   } catch (error) {
     return res.status(500).json({error: error.message});
   }
