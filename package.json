@@ -21,6 +21,7 @@
   "homepage": "https://github.com/MarioAGtzC/devtree#readme",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
