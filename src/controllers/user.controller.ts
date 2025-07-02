@@ -1,5 +1,7 @@
 import formidable from 'formidable';
 import { Request, Response } from 'express';
+import { v4 as uuid } from 'uuid';
+import cloudinary from '../config/cloudinary';
 
 export const getUser = async (req: Request, res: Response): Promise<any> => {
   res.json(req.user);
@@ -20,7 +22,14 @@ export const uploadImage = async (req: Request, res: Response): Promise<any> => 
   const form = formidable({ multiples: false });
   try {
     form.parse(req, async (error, fields, files) => {
-      console.log(files.file[0].filepath);
+      cloudinary.uploader.upload(files.file[0].filepath, { public_id: uuid() }, async function(error, result) {
+        if(error) {
+          return res.status(500).json({error: error.message});
+        }
+        if(result) {
+          console.log(result.secure_url);
+        }
+      })
     });
 
     res.status(200).json('Image uploaded successfully');
