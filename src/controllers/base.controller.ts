@@ -13,3 +13,8 @@ export const getByUsername = async (req: Request, res: Response): Promise<any> =
     return res.status(500).json({error: error.message});
   }
 }
+
+export const searchByUsername = async (req: Request, res: Response): Promise<any> => {
+  const { username } = req.body;
+  return res.json(`${username} is available`)
+}
