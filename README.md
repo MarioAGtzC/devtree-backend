@@ -15,8 +15,9 @@ I designed and built the entire backend as a solo project, covering the API desi
 - **Built authentication around JWT**, issuing long-lived tokens on login and protecting private routes (like editing the profile or uploading an image) with a reusable middleware that resolves the token back to a full user record.
 - **Enforced data integrity at the edges**: usernames are normalized into URL-safe slugs and checked for uniqueness before an account is created or updated, and only whitelisted fields from each request body are allowed to reach the database, reducing the surface for unexpected or malicious input.
 - **Wired up an image pipeline** so users can upload a profile picture; the old image is automatically removed from cloud storage when a new one is uploaded, avoiding orphaned files.
-- **Exposed a public-facing endpoint** (`GET /:username`) that returns a stripped-down, safe view of a profile (no password, email, or internal fields) so the API can support public profile pages without leaking sensitive data.
+- **Exposed public-facing endpoints** — `GET /:username` returns a stripped-down, safe view of a profile (no password, email, or internal fields), and `POST /search` checks whether a chosen username is still available — so the frontend can support public profile pages and a live username-picker without leaking sensitive data.
 - **Deployed the service to Render** and configured environment-based CORS so only the approved frontend origin (or direct API testing) can call the API.
+- **Documented the API with OpenAPI/Swagger**, generating interactive, always-up-to-date docs straight from JSDoc annotations on the route files.
 
 ## Technologies and Tools Used
 
@@ -27,10 +28,11 @@ I designed and built the entire backend as a solo project, covering the API desi
 - **bcryptjs** — one-way password hashing with salting before storing credentials.
 - **express-validator** — request validation and sanitization (required fields, email format, strong-password rules, trimming) run before any controller logic executes.
 - **slug** — normalizes user-chosen usernames into URL-safe, lowercase slugs so they can be used directly in a public profile URL.
-- **Cloudinary** — cloud storage and delivery for profile images, including replacing/deleting the previous image when a user uploads a new one.
+- **Cloudinary** — cloud storage and delivery for profile images, including replacing/deleting the previous image when a user uploads a new one (images are keyed with a generated UUID to keep them unique).
 - **formidable** — parses multipart/form-data uploads for the profile image endpoint.
 - **CORS (with environment-based allow-list)** — restricts which frontend origins can call the API, configurable per environment via `FRONTEND_URL`.
 - **dotenv** — environment-based configuration for secrets and connection strings (MongoDB URI, JWT secret, Cloudinary credentials, frontend origin).
+- **Swagger (swagger-jsdoc + swagger-ui-express)** — auto-generated, interactive OpenAPI documentation served at `/docs`, describing every route, request body, and response.
 - **Render** — hosting/deployment platform for the live API.
 - **nodemon / ts-node** — local development workflow with automatic TypeScript reloads.
 
@@ -43,7 +45,7 @@ I designed and built the entire backend as a solo project, covering the API desi
 
 ## Images, Screenshots, or Live Demos
 
-This repository is API-only and does not include UI screenshots. You can explore the live API directly at the link below (e.g. `GET /:username` for a public profile, or use a tool like Postman/Insomnia against the `/auth` and `/user` endpoints). Screenshots of the companion frontend, if added, should be placed in a `docs/` or `assets/` folder and referenced here.
+This repository is API-only and does not include UI screenshots. The best way to explore it is the live, interactive Swagger UI at [`/docs`](https://apidevtree.greenie.dev/docs), which documents every endpoint and lets you try requests directly from the browser. You can also hit `GET /:username` for a public profile or use a tool like Postman/Insomnia against the `/auth` and `/user` endpoints. Screenshots of the companion frontend, if added, should be placed in a `docs/` or `assets/` folder and referenced here.
 
 ## Live API / Repository
 
