@@ -1,53 +1,72 @@
-# DevTree — Backend
+# DevTree API
 
-DevTree is a REST API for a "link-in-bio" service aimed at developers: each user gets a single public profile page listing their name, description, profile image, and a curated set of links (portfolio, GitHub, social media, etc.), shareable through one URL and username. This repository contains the backend that powers authentication, profile management, and public profile lookup for the DevTree platform.
+REST API for DevTree, a "link-in-bio" service for developers. It handles sign-up and login, profile management (username, bio, profile image, links) and public profile lookup by username. A separate frontend uses it.
 
 ## The Problem It Solves
 
-Developers and creators often have their presence scattered across many platforms — GitHub, LinkedIn, a portfolio site, Twitter/X, a blog — with no single, clean place to point people to. Services like Linktree solve this for a general audience, but DevTree focuses that same idea on developers: one shareable page, one username, all the important links in one place. This API is the backend that makes that possible: it lets a person register an account, claim a unique username, personalize their public page (bio and photo), and manage their list of links, while giving anyone else a fast, read-only way to look up that public page by username.
+Developers keep their work in many places: GitHub, a portfolio, LinkedIn, blogs, social media. DevTree gives each person **one public page under one username** that collects all of those links. Visitors need nothing more than the username to see it. The owner can claim a handle, check whether it's free, and update their bio, photo and links whenever they want.
 
 ## My Role and Process
 
-I designed and built the entire backend as a solo project, covering the API design, data modeling, authentication flow, and third-party integrations end to end. The approach followed was:
+**Course project (2025), built solo.** I followed the course and extended the project. I wrote the whole backend: API design, data model, authentication, validation, image uploads and API documentation.
 
-- **Modeled the core domain** around a single `User` entity that owns both profile data (name, description, image, links) and account credentials, keeping the data model intentionally simple since a user's public page *is* their profile.
-- **Layered the API** into routes, controllers, middlewares, and validators so that request parsing, business logic, and data access stay separated and each request goes through a consistent pipeline: validate → sanitize/filter → authenticate (when needed) → execute.
-- **Built authentication around JWT**, issuing long-lived tokens on login and protecting private routes (like editing the profile or uploading an image) with a reusable middleware that resolves the token back to a full user record.
-- **Enforced data integrity at the edges**: usernames are normalized into URL-safe slugs and checked for uniqueness before an account is created or updated, and only whitelisted fields from each request body are allowed to reach the database, reducing the surface for unexpected or malicious input.
-- **Wired up an image pipeline** so users can upload a profile picture; the old image is automatically removed from cloud storage when a new one is uploaded, avoiding orphaned files.
-- **Exposed public-facing endpoints** — `GET /:username` returns a stripped-down, safe view of a profile (no password, email, or internal fields), and `POST /search` checks whether a chosen username is still available — so the frontend can support public profile pages and a live username-picker without leaking sensitive data.
-- **Deployed the service to Render** and configured environment-based CORS so only the approved frontend origin (or direct API testing) can call the API.
-- **Documented the API with OpenAPI/Swagger**, generating interactive, always-up-to-date docs straight from JSDoc annotations on the route files.
+How it's built:
 
-## Technologies and Tools Used
+- **Simple domain model.** A single `User` document holds both the account credentials and the public profile, because the profile *is* the user's page.
+- **Layered request pipeline.** Each request goes through routes, validators, a body whitelist, optional authentication, then a controller. Validation runs before any business logic.
+- **Strict input handling.**
+  - Usernames are turned into URL-safe slugs, stored in lowercase, and checked for uniqueness on sign-up and on profile edits.
+  - Each endpoint keeps only the body fields it explicitly allows (`filterBody`). Any other fields are dropped before they reach the database.
+  - Passwords must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a symbol.
+- **Safe public views.** `GET /:username` returns the profile without the password, email, internal IDs or timestamps. `POST /search` tells the frontend whether a username is available, so it can build a live username picker.
+- **Image lifecycle.** When a user uploads a new profile image, the previous one is deleted from cloud storage, so no orphaned files build up.
+- **Environment-aware CORS.** Only the configured frontend origin is allowed. Running with the `--api` flag (`npm run dev:api`) also allows requests with no origin, for testing with tools like Postman.
+- **Self-documenting API.** The OpenAPI spec is generated from JSDoc annotations in the route files and served as interactive docs at `/docs`.
 
-- **Node.js + Express** — core HTTP server and routing layer for the REST API.
-- **TypeScript** — static typing across models, controllers, and middlewares to catch errors before runtime and keep request/response shapes explicit.
-- **MongoDB + Mongoose** — persistent storage and schema modeling for user accounts and profile data, including uniqueness constraints on username and email.
-- **JWT (jsonwebtoken)** — stateless authentication; issues a signed token on login and verifies it on every protected request via a custom middleware.
-- **bcryptjs** — one-way password hashing with salting before storing credentials.
-- **express-validator** — request validation and sanitization (required fields, email format, strong-password rules, trimming) run before any controller logic executes.
-- **slug** — normalizes user-chosen usernames into URL-safe, lowercase slugs so they can be used directly in a public profile URL.
-- **Cloudinary** — cloud storage and delivery for profile images, including replacing/deleting the previous image when a user uploads a new one (images are keyed with a generated UUID to keep them unique).
-- **formidable** — parses multipart/form-data uploads for the profile image endpoint.
-- **CORS (with environment-based allow-list)** — restricts which frontend origins can call the API, configurable per environment via `FRONTEND_URL`.
-- **dotenv** — environment-based configuration for secrets and connection strings (MongoDB URI, JWT secret, Cloudinary credentials, frontend origin).
-- **Swagger (swagger-jsdoc + swagger-ui-express)** — auto-generated, interactive OpenAPI documentation served at `/docs`, describing every route, request body, and response.
-- **Render** — hosting/deployment platform for the live API.
-- **nodemon / ts-node** — local development workflow with automatic TypeScript reloads.
+## Technologies and Tools
 
-## Results or Impact
+**Language and framework**
+- **TypeScript on Node.js with Express 5:** HTTP server, routing and middleware pipeline.
 
-- Delivered a fully working, deployed API that supports the complete profile lifecycle: registration, login, profile editing, image upload, and public profile lookup by username.
-- The custom filtering and validation pipeline (whitelisting request fields, normalizing usernames, checking uniqueness) removes an entire class of bugs and injection risks around unexpected or duplicate data, without relying on a heavier framework.
-- The image-replacement logic keeps cloud storage usage lean by automatically cleaning up old assets instead of accumulating orphaned files per user.
-- The API is live and consumed by a companion frontend, demonstrating the full authentication and profile-management flow in a real, publicly accessible deployment.
+**Data**
+- **MongoDB with Mongoose:** stores user accounts and profiles. Unique constraints on username and email, plus automatic timestamps.
 
-## Images, Screenshots, or Live Demos
+**Authentication and security**
+- **JSON Web Tokens (jsonwebtoken):** a token is issued at login (valid for 180 days) and checked by a middleware on protected `/user` routes.
+- **bcryptjs:** hashes passwords with a salt before storing them.
+- **express-validator:** validates and sanitizes requests: required fields, email format, strong-password rules, and username/email uniqueness.
+- **CORS allow-list:** limits which frontend origin can call the API.
 
-This repository is API-only and does not include UI screenshots. The best way to explore it is the live, interactive Swagger UI at [`/docs`](https://apidevtree.greenie.dev/docs), which documents every endpoint and lets you try requests directly from the browser. You can also hit `GET /:username` for a public profile or use a tool like Postman/Insomnia against the `/auth` and `/user` endpoints. Screenshots of the companion frontend, if added, should be placed in a `docs/` or `assets/` folder and referenced here.
+**Media**
+- **Cloudinary:** stores and serves profile images under UUID-based IDs and replaces the old image on each new upload.
+- **formidable:** parses the `multipart/form-data` profile image uploads.
 
-## Live API / Repository
+**Supporting utilities**
+- **slug:** turns usernames into URL-safe handles for public profile URLs.
+- **dotenv:** loads configuration from the environment (database connection, JWT secret, Cloudinary credentials, frontend origin).
 
-- **Live API:** [https://apidevtree.greenie.dev/](https://apidevtree.greenie.dev/) (hosted on Render)
-- **Repository:** [https://github.com/MarioAGtzC/devtree](https://github.com/MarioAGtzC/devtree)
+**API documentation**
+- **swagger-jsdoc + swagger-ui-express:** OpenAPI 3.0 spec generated from route annotations and served as interactive docs.
+
+**Development**
+- **nodemon + ts-node:** reloads the TypeScript server automatically during development. `tsc` compiles it for production.
+
+## Results and Impact
+
+- **Full profile lifecycle in a deployed API:** registration, login, profile editing, profile image upload, username availability checks and public profile lookup.
+- **Validation at the edges:** field whitelisting, slugged usernames and uniqueness checks keep unexpected or duplicate data out of the database.
+- **No sensitive data in public responses:** public lookups never return passwords, emails or internal fields.
+- **No orphaned images:** replacing a profile image deletes the old one in Cloudinary.
+- **Self-service docs:** every endpoint can be explored and tried from the browser through Swagger UI.
+
+This is a course project. It has no production traffic or performance metrics to report, and the repository contains no automated tests or CI pipeline yet.
+
+## Screenshots and Live Demo
+
+- **Live demo:** the interactive Swagger UI (link below) lists every endpoint and lets you send requests from the browser.
+- **Screenshots:** there are none in this repository yet. Add them under `docs/screenshots/` (for example, a capture of the Swagger UI) and reference them here.
+
+## Links
+
+- **Live API docs:** https://apidevtree.greenie.dev/docs
+- **Frontend repository:** `devtree-frontend` (the client application that uses this API)
